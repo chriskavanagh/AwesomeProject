@@ -10,11 +10,11 @@ import {
 } from 'react-native';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
-export default function LoginScreen() {
+export default function LoginScreen({user}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [newUser, setUser] = useState({});
+  //const [newUser, setUser] = useState({});
   const [current, setCurrent] = useState();
   //const dispatch = useDispatch();
 
@@ -28,21 +28,11 @@ export default function LoginScreen() {
       .then(() => console.log('User signed out!'));
   };
 
-  function onAuthStateChanged(user) {
-    setUser(user);
-  }
-
-  useEffect(() => {
-    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
-    console.log(subscriber);
-    return subscriber; // unsubscribe on unmount
-  }, []);
-
   const onLoginPress = () => {
     auth()
       .signInWithEmailAndPassword(email, password)
       .then(() => {
-        console.log(newUser);
+        console.log(user);
         console.log('You are signed in!');
       })
       .catch((error) => {
@@ -59,9 +49,9 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.userContainer}>
-        {newUser != null ? (
+        {user != null ? (
           <Text style={styles.userTxt}>
-            You're already logged in as {newUser.email}
+            You're already logged in as {user.email}
           </Text>
         ) : (
           <Text style={styles.userTxt} style={styles.userTxt}>

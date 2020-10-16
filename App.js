@@ -1,38 +1,64 @@
 import 'react-native-gesture-handler';
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import LoginScreen from './screens/LoginScreen';
 import firestore from '@react-native-firebase/firestore';
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import auth from '@react-native-firebase/auth';
+import {NavigationContainer} from '@react-navigation/native';
 
-/* if (!global.btoa) {
-  global.btoa = encode;
-}
-if (!global.atob) {
-  global.atob = decode;
-} */
-
-/* const AppButton = ({onPress, title}) => (
+const AppButton = ({onPress, title}) => (
   <TouchableOpacity onPress={onPress} style={styles.appButtonContainer}>
     <Text style={styles.appButtonText}>{title}</Text>
   </TouchableOpacity>
-); */
+);
 
 function App() {
+  const [user, setUser] = useState();
+  const [initializing, setInitializing] = useState(true);
+
+  // Handle user state changes
+  function onAuthStateChanged(user) {
+    setUser(user);
+    if (initializing) setInitializing(false);
+  }
   const addTodo = () => {
     firestore()
-      .collection('Users')
+      .collection('cart')
       .add({
-        name: 'Missy Kavanagh',
-        age: 20,
+        items: ['California Roll', 'Spicy Tuna Roll', 'Egg Roll'],
+        total: '49.95',
+        type: 'pickup',
       })
       .then(() => {
-        console.log('User added!');
+        console.log('Order added!');
       });
   };
 
+  const signOut = () => {
+    auth()
+      .signOut()
+      .then(() => console.log('User signed out!'));
+  };
+
+  useEffect(() => {
+    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+    return subscriber; // unsubscribe on unmount
+  }, []);
+
+  if (initializing) return null;
+
+  if (!user) {
+    return (
+      <View style={{flex: 1}}>
+        <LoginScreen user={user} setUser={setUser} />
+      </View>
+    );
+  }
+
   return (
-    <View style={{flex: 1}}>
-      <LoginScreen />
+    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+      <Text style={styles.txt}>Welcome, {user.email}</Text>
+      <AppButton onPress={addTodo} title={'Add Data'} />
     </View>
   );
 }
@@ -56,6 +82,11 @@ const styles = StyleSheet.create({
   txt: {
     padding: 20,
     fontSize: 20,
+  },
+  footerLink: {
+    color: '#788eec',
+    fontWeight: 'bold',
+    fontSize: 18,
   },
 });
 

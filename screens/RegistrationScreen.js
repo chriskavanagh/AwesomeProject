@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-//import firebase from '../config';
+import auth from '@react-native-firebase/auth';
 import {
   //Image,
   Text,
@@ -25,9 +25,7 @@ export default function RegistrationScreen({navigation}) {
       alert("Passwords don't match.");
       return;
     }
-
-    firebase
-      .auth()
+    auth()
       .createUserWithEmailAndPassword(email, password)
       .then((response) => {
         const user = response.user.email;
