@@ -1,26 +1,26 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import auth from '@react-native-firebase/auth';
-//import { useDispatch } from "react-redux";
 import {
   Text,
   TextInput,
   TouchableOpacity,
   View,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
+import {useSelector} from 'react-redux';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
-export default function LoginScreen({user}) {
+export default function LoginScreen({navigation}) {
+  const user = useSelector((state) => state.userReducer.user);
+  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  //const [newUser, setUser] = useState({});
-  const [current, setCurrent] = useState();
-  //const dispatch = useDispatch();
 
-  /* const onFooterLinkPress = () => {
+  const onFooterLinkPress = () => {
     navigation.navigate('Registration');
-  }; */
+  };
 
   const signOut = () => {
     auth()
@@ -29,30 +29,53 @@ export default function LoginScreen({user}) {
   };
 
   const onLoginPress = () => {
+    setError(null);
+    setLoading(true);
     auth()
       .signInWithEmailAndPassword(email, password)
       .then(() => {
-        console.log(user);
+        setLoading(false);
         console.log('You are signed in!');
       })
+      //.then(() => navigation.navigate('Test'))
       .catch((error) => {
         if (error.code === 'auth/email-already-in-use') {
+          setLoading(false);
+          setError('The Email Address Is Already In Use');
           console.log('Email address already in use!');
         }
         if (error.code === 'auth/invalid-email') {
+          setLoading(false);
+          setError('Your Email Address Is Invalid');
           console.log('That email address is invalid!');
+        }
+        if (error.code === 'auth/user-not-found') {
+          setLoading(false);
+          setError('User Not Found');
+          console.log('That email address is invalid!');
+        }
+        if (error.code === 'auth/wrong-password') {
+          setLoading(false);
+          setError('Your Password Is Invalid');
+          console.log('Bad Password');
         }
         console.error(error);
       });
   };
 
+  if (loading) {
+    return (
+      <View style={{marginTop: 150}}>
+        <ActivityIndicator size="large" color="#00ff00" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.userContainer}>
         {user != null ? (
-          <Text style={styles.userTxt}>
-            You're already logged in as {user.email}
-          </Text>
+          <Text style={styles.userTxt}>You're logged in as {user.email}</Text>
         ) : (
           <Text style={styles.userTxt} style={styles.userTxt}>
             Please log in. . .
@@ -61,6 +84,7 @@ export default function LoginScreen({user}) {
       </View>
       <KeyboardAwareScrollView keyboardShouldPersistTaps="always">
         {/* <Image style={styles.logo} source={require('../../assets/icon.png')} /> */}
+        <View>{error ? <Text style={styles.error}>{error}</Text> : null}</View>
         <TextInput
           style={styles.input}
           placeholder="E-mail"
@@ -84,15 +108,21 @@ export default function LoginScreen({user}) {
           <Text style={styles.buttonTitle}>Log in</Text>
         </TouchableOpacity>
         <View style={styles.footerView}>
-          <Text style={styles.footerText}>
-            Don't have an account?{' '}
-            {/* <Text onPress={onFooterLinkPress} style={styles.footerLink}>
+          <View>
+            <Text style={styles.footerText}>Don't have an account? </Text>
+          </View>
+          <View>
+            <Text
+              onPress={() => navigation.navigate('Registration')}
+              style={styles.footerLink}>
               Sign up
-            </Text> */}
-          </Text>
-          <TouchableOpacity onPress={signOut}>
-            <Text style={styles.footerLink}>Log Out</Text>
-          </TouchableOpacity>
+            </Text>
+          </View>
+          <View>
+            <TouchableOpacity onPress={signOut}>
+              <Text style={styles.footerLink}>Log Out</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </KeyboardAwareScrollView>
     </View>
@@ -144,6 +174,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     marginTop: 20,
+    flexDirection: 'column',
   },
   footerText: {
     fontSize: 18,
@@ -169,5 +200,10 @@ const styles = StyleSheet.create({
   userTxt: {
     color: 'white',
     fontSize: 16,
+  },
+  error: {
+    color: 'red',
+    fontSize: 17,
+    textAlign: 'center',
   },
 });
